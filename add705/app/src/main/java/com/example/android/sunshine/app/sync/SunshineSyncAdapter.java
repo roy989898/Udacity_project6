@@ -42,6 +42,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
@@ -437,7 +438,15 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
             PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/num");
             Calendar rightNow = Calendar.getInstance();
 //            String showString = "Time: " + rightNow.getTimeInMillis();
-            putDataMapReq.getDataMap().putString(KEY, showString);
+
+            DataMap map = putDataMapReq.getDataMap();
+            map.putString(KEY, showString);
+            map.putString(getContext().getString(R.string.HIGH_TEMP_KEY), highString);
+            map.putString(getContext().getString(R.string.LOW_TEMP_KEY), lowString);
+            map.putInt(getContext().getString(R.string.WEATID_KEY), weatherId);
+            map.putString(getContext().getString(R.string.DESC_KEY), desc);
+
+
             PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
             PendingResult<DataApi.DataItemResult> pendingResult =
                     Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);

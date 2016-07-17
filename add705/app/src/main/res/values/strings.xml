@@ -230,4 +230,6 @@
 
     <string name="HIGH_TEMP_KEY" translatable="false">hightempkey</string>
     <string name="LOW_TEMP_KEY" translatable="false">lowtempkey</string>
+    <string name="WEATID_KEY" translatable="false">weatheridkey</string>
+    <string name="DESC_KEY" translatable="false">desckey</string>
 </resources>
