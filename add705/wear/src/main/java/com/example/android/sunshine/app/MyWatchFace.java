@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -53,7 +55,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
     private boolean mLowBitAmbient;
     private boolean mAmbient;
 
-    private String showText = "HIH";
+    private String showText = "24C 16C";
+    private Bitmap weatherIcon;
 
     @Override
     public Engine onCreateEngine() {
@@ -230,9 +233,9 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     break;
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
-                    mTapCount++;
+                    /*mTapCount++;
                     mBackgroundPaint.setColor(resources.getColor(mTapCount % 2 == 0 ?
-                            R.color.background : R.color.background2));
+                            R.color.background : R.color.background2));*/
                     break;
             }
             invalidate();
@@ -257,6 +260,12 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     : String.format("%d:%02d:%02d", mTime.hour, mTime.minute, mTime.second);
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
 
+
+            //draw the weatcher icon
+            weatherIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
+            canvas.drawBitmap(weatherIcon, mXOffset, mYOffset, null);
+
+            //draw the tempecture and humidity
             canvas.drawText(showText, mXOffset, mTextYOffset, mTextPaint);
         }
 
