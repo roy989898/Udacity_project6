@@ -44,27 +44,26 @@ import java.util.concurrent.TimeUnit;
  * low-bit ambient mode, the text is drawn without anti-aliasing in ambient mode.
  */
 public class MyWatchFace extends CanvasWatchFaceService {
-    private static final Typeface NORMAL_TYPEFACE =
-            Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
-
-    /**
-     * Update rate in milliseconds for interactive mode. We update once a second since seconds are
-     * displayed in interactive mode.
-     */
+    private static final int MSG_UPDATE_TIME = 0;
     private static final long INTERACTIVE_UPDATE_RATE_MS = TimeUnit.SECONDS.toMillis(1);
 
-    /**
-     * Handler message id for updating the time periodically in interactive mode.
-     */
-    private static final int MSG_UPDATE_TIME = 0;
+    private static final Typeface NORMAL_TYPEFACE =
+            Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
+    private boolean mRegisteredTimeZoneReceiver;
+    private boolean mLowBitAmbient;
+    private boolean mAmbient;
+
+    private String showText = "HIH";
 
     @Override
     public Engine onCreateEngine() {
+        /* provide your watch face implementation */
         return new Engine();
     }
 
     private static class EngineHandler extends Handler {
         private final WeakReference<MyWatchFace.Engine> mWeakReference;
+
 
         public EngineHandler(MyWatchFace.Engine reference) {
             mWeakReference = new WeakReference<>(reference);
@@ -83,13 +82,27 @@ public class MyWatchFace extends CanvasWatchFaceService {
         }
     }
 
+
+    /* implement service callback methods */
     private class Engine extends CanvasWatchFaceService.Engine {
         final Handler mUpdateTimeHandler = new EngineHandler(this);
-        boolean mRegisteredTimeZoneReceiver = false;
-        Paint mBackgroundPaint;
-        Paint mTextPaint;
-        boolean mAmbient;
-        Time mTime;
+        private float mYOffset;
+        private float mXOffset;
+
+        private float mTextYOffset;
+        private float mTextXOffset;
+        private String TEXT_KEY = "showText_key";
+        final BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String text = intent.getStringExtra(TEXT_KEY);
+                showText = text;
+                invalidate();//focus update
+            }
+        };
+        private Paint mBackgroundPaint;
+        private Paint mTextPaint;
+        private Time mTime;
         final BroadcastReceiver mTimeZoneReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -97,21 +110,34 @@ public class MyWatchFace extends CanvasWatchFaceService {
                 mTime.setToNow();
             }
         };
-        int mTapCount;
-
-        float mXOffset;
-        float mYOffset;
+        private int mTapCount;
 
         /**
-         * Whether the display supports fewer bits for each color in ambient mode. When true, we
-         * disable anti-aliasing in ambient mode.
+         * Update rate in milliseconds for interactive mode. We update once a second since seconds are
+         * displayed in interactive mode.
          */
-        boolean mLowBitAmbient;
+
+        private boolean shouldTimerBeRunning() {
+            return isVisible() && !isInAmbientMode();
+        }
+
+        /**
+         * Handle updating the time periodically in interactive mode.
+         */
+        private void handleUpdateTimeMessage() {
+            invalidate();
+            if (shouldTimerBeRunning()) {
+                long timeMs = System.currentTimeMillis();
+                long delayMs = INTERACTIVE_UPDATE_RATE_MS
+                        - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
+                mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
+            }
+        }
 
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
-
+            /* initialize your watch face */
             setWatchFaceStyle(new WatchFaceStyle.Builder(MyWatchFace.this)
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_VARIABLE)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
@@ -120,6 +146,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     .build());
             Resources resources = MyWatchFace.this.getResources();
             mYOffset = resources.getDimension(R.dimen.digital_y_offset);
+
+            mTextYOffset = resources.getDimension(R.dimen.digital_text_y_offset);
 
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.background));
@@ -130,54 +158,12 @@ public class MyWatchFace extends CanvasWatchFaceService {
             mTime = new Time();
         }
 
-        @Override
-        public void onDestroy() {
-            mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
-            super.onDestroy();
-        }
-
         private Paint createTextPaint(int textColor) {
             Paint paint = new Paint();
             paint.setColor(textColor);
             paint.setTypeface(NORMAL_TYPEFACE);
             paint.setAntiAlias(true);
             return paint;
-        }
-
-        @Override
-        public void onVisibilityChanged(boolean visible) {
-            super.onVisibilityChanged(visible);
-
-            if (visible) {
-                registerReceiver();
-
-                // Update time zone in case it changed while we weren't visible.
-                mTime.clear(TimeZone.getDefault().getID());
-                mTime.setToNow();
-            } else {
-                unregisterReceiver();
-            }
-
-            // Whether the timer should be running depends on whether we're visible (as well as
-            // whether we're in ambient mode), so we may need to start or stop the timer.
-            updateTimer();
-        }
-
-        private void registerReceiver() {
-            if (mRegisteredTimeZoneReceiver) {
-                return;
-            }
-            mRegisteredTimeZoneReceiver = true;
-            IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
-            MyWatchFace.this.registerReceiver(mTimeZoneReceiver, filter);
-        }
-
-        private void unregisterReceiver() {
-            if (!mRegisteredTimeZoneReceiver) {
-                return;
-            }
-            mRegisteredTimeZoneReceiver = false;
-            MyWatchFace.this.unregisterReceiver(mTimeZoneReceiver);
         }
 
         @Override
@@ -196,19 +182,28 @@ public class MyWatchFace extends CanvasWatchFaceService {
         }
 
         @Override
+        public void onDestroy() {
+            mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
+            super.onDestroy();
+        }
+
+        @Override
         public void onPropertiesChanged(Bundle properties) {
             super.onPropertiesChanged(properties);
+            /* get device features (burn-in, low-bit ambient) */
             mLowBitAmbient = properties.getBoolean(PROPERTY_LOW_BIT_AMBIENT, false);
         }
 
         @Override
         public void onTimeTick() {
             super.onTimeTick();
+            /* the time changed */
             invalidate();
         }
 
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
+
             super.onAmbientModeChanged(inAmbientMode);
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
@@ -223,10 +218,6 @@ public class MyWatchFace extends CanvasWatchFaceService {
             updateTimer();
         }
 
-        /**
-         * Captures tap event (and tap type) and toggles the background color if the user finishes
-         * a tap.
-         */
         @Override
         public void onTapCommand(int tapType, int x, int y, long eventTime) {
             Resources resources = MyWatchFace.this.getResources();
@@ -249,7 +240,10 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onDraw(Canvas canvas, Rect bounds) {
+            /* draw your watch face */
             // Draw the background.
+
+            //TODO AmbientMode changing at here
             if (isInAmbientMode()) {
                 canvas.drawColor(Color.BLACK);
             } else {
@@ -262,12 +256,31 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     ? String.format("%d:%02d", mTime.hour, mTime.minute)
                     : String.format("%d:%02d:%02d", mTime.hour, mTime.minute, mTime.second);
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
+
+            canvas.drawText(showText, mXOffset, mTextYOffset, mTextPaint);
         }
 
-        /**
-         * Starts the {@link #mUpdateTimeHandler} timer if it should be running and isn't currently
-         * or stops it if it shouldn't be running but currently is.
-         */
+        @Override
+        public void onVisibilityChanged(boolean visible) {
+            super.onVisibilityChanged(visible);
+            /* the watch face became visible or invisible */
+            if (visible) {
+                registerReceiver();
+                registerTextReceiver();
+
+                // Update time zone in case it changed while we weren't visible.
+                mTime.clear(TimeZone.getDefault().getID());
+                mTime.setToNow();
+            } else {
+                unregisterReceiver();
+                unregisterTextReceiver();
+            }
+
+            // Whether the timer should be running depends on whether we're visible (as well as
+            // whether we're in ambient mode), so we may need to start or stop the timer.
+            updateTimer();
+        }
+
         private void updateTimer() {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             if (shouldTimerBeRunning()) {
@@ -275,25 +288,34 @@ public class MyWatchFace extends CanvasWatchFaceService {
             }
         }
 
-        /**
-         * Returns whether the {@link #mUpdateTimeHandler} timer should be running. The timer should
-         * only run when we're visible and in interactive mode.
-         */
-        private boolean shouldTimerBeRunning() {
-            return isVisible() && !isInAmbientMode();
+        private void registerReceiver() {
+            if (mRegisteredTimeZoneReceiver) {
+                return;
+            }
+            mRegisteredTimeZoneReceiver = true;
+            IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
+            MyWatchFace.this.registerReceiver(mTimeZoneReceiver, filter);
         }
 
-        /**
-         * Handle updating the time periodically in interactive mode.
-         */
-        private void handleUpdateTimeMessage() {
-            invalidate();
-            if (shouldTimerBeRunning()) {
-                long timeMs = System.currentTimeMillis();
-                long delayMs = INTERACTIVE_UPDATE_RATE_MS
-                        - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
-                mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
+        private void unregisterReceiver() {
+            if (!mRegisteredTimeZoneReceiver) {
+                return;
             }
+            mRegisteredTimeZoneReceiver = false;
+            MyWatchFace.this.unregisterReceiver(mTimeZoneReceiver);
+        }
+
+        private void registerTextReceiver() {
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(getResources().getString(R.string.Text_RECEIVER_ACTION));
+            MyWatchFace.this.registerReceiver(messageReceiver, filter);
+        }
+
+        private void unregisterTextReceiver() {
+
+            if (messageReceiver != null)
+                MyWatchFace.this.unregisterReceiver(messageReceiver);
         }
     }
 }
