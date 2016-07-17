@@ -213,7 +213,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
         //TODO delete after test
         btTest = (Button) rootView.findViewById(R.id.btTest);
-        btTest.setOnClickListener(this);
+        if (btTest != null)
+            btTest.setOnClickListener(this);
 
         // Get a reference to the RecyclerView, and attach this adapter to it.
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_forecast);
