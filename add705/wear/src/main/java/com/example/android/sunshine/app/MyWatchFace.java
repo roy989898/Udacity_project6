@@ -57,6 +57,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
     private String showText = "24C 16C";
     private Bitmap weatherIcon;
+    private Paint mTemPaint;
 
     @Override
     public Engine onCreateEngine() {
@@ -157,6 +158,9 @@ public class MyWatchFace extends CanvasWatchFaceService {
             mTextPaint = new Paint();
             mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
 
+            mTemPaint = new Paint();
+            mTemPaint = createTextPaint(resources.getColor(R.color.digital_text));
+
             mTime = new Time();
         }
 
@@ -181,6 +185,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
 
             mTextPaint.setTextSize(textSize);
+            mTemPaint.setTextSize(12);
         }
 
         @Override
@@ -265,7 +270,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
             canvas.drawBitmap(weatherIcon, mXOffset, mYOffset, null);
 
             //draw the tempecture and humidity
-            canvas.drawText(showText, mXOffset, mTextYOffset, mTextPaint);
+            canvas.drawText(showText, mXOffset, mTextYOffset, mTemPaint);
         }
 
         @Override
