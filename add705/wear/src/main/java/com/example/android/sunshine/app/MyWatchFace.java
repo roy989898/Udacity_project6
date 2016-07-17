@@ -37,6 +37,8 @@ import android.text.format.Time;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
+import com.example.android.sunshine.app.Utility.Utility;
+
 import java.lang.ref.WeakReference;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -58,6 +60,10 @@ public class MyWatchFace extends CanvasWatchFaceService {
     private String showText = "24C 16C";
     private Bitmap weatherIcon;
     private Paint mTemPaint;
+    private String lowtemp="--";
+    private String hightemp="--";
+    private String desString="--";
+    private int weatherID=-1;
 
     @Override
     public Engine onCreateEngine() {
@@ -94,6 +100,10 @@ public class MyWatchFace extends CanvasWatchFaceService {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String text = intent.getStringExtra(getString(R.string.BRODCAST_INTENT_KEY));
+                 lowtemp = intent.getStringExtra(getString(R.string.LOW_TEMP_KEY));
+                 hightemp = intent.getStringExtra(getString(R.string.HIGH_TEMP_KEY));
+                 desString = intent.getStringExtra(getString(R.string.DESC_KEY));
+                 weatherID = intent.getIntExtra(getString(R.string.WEATID_KEY),-1);
                 showText = text;
                 invalidate();//focus update
             }
@@ -266,11 +276,14 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
 
             //draw the weatcher icon
-            weatherIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_clear);
-            canvas.drawBitmap(weatherIcon, mXOffset, mYOffset, null);
+            if(weatherID!=-1){
+                weatherIcon = BitmapFactory.decodeResource(getResources(), Utility.getIconResourceForWeatherCondition(weatherID));
+                canvas.drawBitmap(weatherIcon, mXOffset, mYOffset, null);
+            }
+
 
             //draw the tempecture and humidity
-            canvas.drawText(showText, mXOffset, mTextYOffset, mTemPaint);
+            canvas.drawText(lowtemp+" "+hightemp, mXOffset, mTextYOffset, mTextPaint);
         }
 
         @Override

@@ -32,11 +32,25 @@ public class DataLayerListenerService extends WearableListenerService {
                 DataItem item = event.getDataItem();
                 if (item.getUri().getPath().compareTo("/num") == 0) {
                     DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+
                     String receivedString = dataMap.getString(KEY);
+                    String lowtemp = dataMap.getString(getString(R.string.LOW_TEMP_KEY));
+                    String hightTemp = dataMap.getString(getString(R.string.HIGH_TEMP_KEY));
+                    String descr = dataMap.getString(getString(R.string.DESC_KEY));
+                    int weatherID = dataMap.getInt(getString(R.string.WEATID_KEY));
+
+
+
                     Log.d(TAG, receivedString);
 //                    updateTV(dataMap.getString(KEY));
                     Intent intent = new Intent();
+
                     intent.putExtra(getString(R.string.BRODCAST_INTENT_KEY), receivedString);
+                    intent.putExtra(getString(R.string.LOW_TEMP_KEY), lowtemp);
+                    intent.putExtra(getString(R.string.HIGH_TEMP_KEY), hightTemp);
+                    intent.putExtra(getString(R.string.DESC_KEY), descr);
+                    intent.putExtra(getString(R.string.WEATID_KEY), weatherID);
+
                     intent.setAction(getString(R.string.Text_RECEIVER_ACTION));
                     sendBroadcast(intent);
                 }
