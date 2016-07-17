@@ -89,20 +89,19 @@ public class MyWatchFace extends CanvasWatchFaceService {
     /* implement service callback methods */
     private class Engine extends CanvasWatchFaceService.Engine {
         final Handler mUpdateTimeHandler = new EngineHandler(this);
-        private float mYOffset;
-        private float mXOffset;
-
-        private float mTextYOffset;
-        private float mTextXOffset;
-        private String TEXT_KEY = "showText_key";
         final BroadcastReceiver messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String text = intent.getStringExtra(TEXT_KEY);
+                String text = intent.getStringExtra(getString(R.string.BRODCAST_INTENT_KEY));
                 showText = text;
                 invalidate();//focus update
             }
         };
+        private float mYOffset;
+        private float mXOffset;
+        private float mTextYOffset;
+        private float mTextXOffset;
+        private String TEXT_KEY = "showText_key";
         private Paint mBackgroundPaint;
         private Paint mTextPaint;
         private Time mTime;
