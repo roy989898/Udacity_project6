@@ -15,6 +15,7 @@ public class SunshineSyncService extends Service {
         synchronized (sSyncAdapterLock) {
             if (sSunshineSyncAdapter == null) {
                 sSunshineSyncAdapter = new SunshineSyncAdapter(getApplicationContext(), true);
+                sSunshineSyncAdapter.mGoogleApiClient.connect();
             }
         }
     }
@@ -22,5 +23,13 @@ public class SunshineSyncService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return sSunshineSyncAdapter.getSyncAdapterBinder();
+    }
+
+    @Override
+    public void onDestroy() {
+        if (sSunshineSyncAdapter != null) {
+            sSunshineSyncAdapter.mGoogleApiClient.disconnect();
+        }
+        super.onDestroy();
     }
 }
