@@ -158,7 +158,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         sp.registerOnSharedPreferenceChangeListener(this);
         super.onResume();
 
-        mGoogleApiClient.connect();
+//        mGoogleApiClient.connect();
     }
 
     @Override
@@ -167,7 +167,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         sp.unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
 
-        mGoogleApiClient.disconnect();
+//        mGoogleApiClient.disconnect();
     }
 
     @Override
