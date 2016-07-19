@@ -60,10 +60,23 @@ public class MyWatchFace extends CanvasWatchFaceService {
     private String showText = "24C 16C";
     private Bitmap weatherIcon;
     private Paint mTemPaint;
-    private String lowtemp="--";
-    private String hightemp="--";
-    private String desString="--";
-    private int weatherID=-1;
+    private String lowtemp = "--";
+    private String hightemp = "--";
+    private String desString = "--";
+    private int weatherID = -1;
+
+    private int[] colorArray = {R.color.backgroundRed, R.color.backgroundPink, R.color.backgroundPurple, R.color.BackgroundDeepPurple, R.color.backgroundIndigo, R.color.backgroundBlue,
+            R.color.backgroundLightBlue, R.color.backgroundCyan, R.color.backgroundTeal,
+            R.color.backgroundGreen, R.color.backgroundLightGreen, R.color.backgroundLime, R.color.backgroundYellow, R.color.backgroundAmber,
+            R.color.backgroundOrange, R.color.backgroundDarkOrange};
+
+    private int colorCount = 0;
+    private float mCenterHeight;
+    private float mCenterWidth;
+    private float mCenterWidthforWeatherIcon;
+    private float weatherY;
+    private float HihTempX;
+    private float LowTempX;
 
     @Override
     public Engine onCreateEngine() {
@@ -100,10 +113,10 @@ public class MyWatchFace extends CanvasWatchFaceService {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String text = intent.getStringExtra(getString(R.string.BRODCAST_INTENT_KEY));
-                 lowtemp = intent.getStringExtra(getString(R.string.LOW_TEMP_KEY));
-                 hightemp = intent.getStringExtra(getString(R.string.HIGH_TEMP_KEY));
-                 desString = intent.getStringExtra(getString(R.string.DESC_KEY));
-                 weatherID = intent.getIntExtra(getString(R.string.WEATID_KEY),-1);
+                lowtemp = intent.getStringExtra(getString(R.string.LOW_TEMP_KEY));
+                hightemp = intent.getStringExtra(getString(R.string.HIGH_TEMP_KEY));
+                desString = intent.getStringExtra(getString(R.string.DESC_KEY));
+                weatherID = intent.getIntExtra(getString(R.string.WEATID_KEY), -1);
                 showText = text;
                 invalidate();//focus update
             }
@@ -124,6 +137,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
             }
         };
         private int mTapCount;
+        private float mCenterHeightforWeatherIcon;
 
         /**
          * Update rate in milliseconds for interactive mode. We update once a second since seconds are
@@ -195,7 +209,9 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
 
             mTextPaint.setTextSize(textSize);
-            mTemPaint.setTextSize(12);
+            mTemPaint.setTextSize(36);
+
+
         }
 
         @Override
@@ -247,12 +263,32 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     break;
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
-                    /*mTapCount++;
-                    mBackgroundPaint.setColor(resources.getColor(mTapCount % 2 == 0 ?
-                            R.color.background : R.color.background2));*/
+                    mTapCount++;
+                    mBackgroundPaint.setColor(resources.getColor(getBackgroundColor()));
                     break;
             }
             invalidate();
+        }
+
+        private int getBackgroundColor() {
+
+
+            int color = colorArray[colorCount];
+            colorCount++;
+            if (colorCount >= colorArray.length)
+                colorCount = 0;
+
+            return color;
+
+        }
+
+        @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            super.onSurfaceChanged(holder, format, width, height);
+
+            mCenterHeight = height / 2f;
+            mCenterWidth = width / 2f;
+
         }
 
         @Override
@@ -274,16 +310,51 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     : String.format("%d:%02d:%02d", mTime.hour, mTime.minute, mTime.second);
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
 
-
+            //getThe hright of the Time text
+            Rect timebounds = new Rect();
+            mTextPaint.getTextBounds(text, 0, text.length() - 1, timebounds);
+            int textHeight = timebounds.height();
             //draw the weatcher icon
-            if(weatherID!=-1){
+            if (weatherID != -1) {
                 weatherIcon = BitmapFactory.decodeResource(getResources(), Utility.getIconResourceForWeatherCondition(weatherID));
-                canvas.drawBitmap(weatherIcon, mXOffset, mYOffset, null);
+                mCenterWidthforWeatherIcon = mCenterWidth - weatherIcon.getWidth() / 2f;
+                mCenterHeightforWeatherIcon = mCenterHeight - weatherIcon.getHeight() / 2f;
+
+                weatherY = mCenterHeightforWeatherIcon + textHeight;
+
+                canvas.drawBitmap(weatherIcon, mCenterWidthforWeatherIcon, weatherY, null);
+            }
+
+            Rect temBounds = new Rect();
+            mTemPaint.getTextBounds(hightemp, 0, hightemp.length() - 1, temBounds);
+            int heightOfTemp = temBounds.height();
+            float TempY;
+
+            //set the Y of the temp
+            if (weatherIcon != null) {
+                TempY = weatherY + weatherIcon.getHeight();
+                 HihTempX = mCenterWidth-weatherIcon.getWidth()/2f-mTemPaint.measureText(hightemp);
+                LowTempX = mCenterWidth+weatherIcon.getWidth()/2f;
+                //draw the high temp
+                canvas.drawText(hightemp, HihTempX, TempY, mTemPaint);
+
+                //draw the low temp
+                canvas.drawText(lowtemp, LowTempX, TempY, mTemPaint);
+
+
+            } else {
+                TempY = weatherY;
+
             }
 
 
+            //set the x of the high tem
             //draw the tempecture and humidity
-            canvas.drawText(lowtemp+" "+hightemp, mXOffset, mTextYOffset, mTextPaint);
+
+//            canvas.drawText(lowtemp + " " + hightemp, mXOffset, TempY, mTemPaint);
+
+
+//            canvas.drawText(lowtemp + " " + hightemp, mXOffset, TempY, mTemPaint);
         }
 
         @Override

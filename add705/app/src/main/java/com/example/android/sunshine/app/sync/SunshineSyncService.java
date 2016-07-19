@@ -15,7 +15,7 @@ public class SunshineSyncService extends Service {
         synchronized (sSyncAdapterLock) {
             if (sSunshineSyncAdapter == null) {
                 sSunshineSyncAdapter = new SunshineSyncAdapter(getApplicationContext(), true);
-                sSunshineSyncAdapter.mGoogleApiClient.connect();
+//                sSunshineSyncAdapter.mGoogleApiClient.connect();//TODO after  test recovery
             }
         }
     }
@@ -28,7 +28,7 @@ public class SunshineSyncService extends Service {
     @Override
     public void onDestroy() {
         if (sSunshineSyncAdapter != null) {
-            sSunshineSyncAdapter.mGoogleApiClient.disconnect();
+//            sSunshineSyncAdapter.mGoogleApiClient.disconnect();
         }
         super.onDestroy();
     }
