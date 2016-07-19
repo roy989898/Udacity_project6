@@ -75,6 +75,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
     private float mCenterWidth;
     private float mCenterWidthforWeatherIcon;
     private float weatherY;
+    private float HihTempX;
+    private float LowTempX;
 
     @Override
     public Engine onCreateEngine() {
@@ -329,14 +331,30 @@ public class MyWatchFace extends CanvasWatchFaceService {
             float TempY;
 
             //set the Y of the temp
-            if (weatherIcon != null)
+            if (weatherIcon != null) {
                 TempY = weatherY + weatherIcon.getHeight();
-            else
+                 HihTempX = mCenterWidth-weatherIcon.getWidth()/2f-mTemPaint.measureText(hightemp);
+                LowTempX = mCenterWidth+weatherIcon.getWidth()/2f;
+                //draw the high temp
+                canvas.drawText(hightemp, HihTempX, TempY, mTemPaint);
+
+                //draw the low temp
+                canvas.drawText(lowtemp, LowTempX, TempY, mTemPaint);
+
+
+            } else {
                 TempY = weatherY;
+
+            }
+
 
             //set the x of the high tem
             //draw the tempecture and humidity
-            canvas.drawText(lowtemp + " " + hightemp, mXOffset, TempY, mTemPaint);
+
+//            canvas.drawText(lowtemp + " " + hightemp, mXOffset, TempY, mTemPaint);
+
+
+//            canvas.drawText(lowtemp + " " + hightemp, mXOffset, TempY, mTemPaint);
         }
 
         @Override
