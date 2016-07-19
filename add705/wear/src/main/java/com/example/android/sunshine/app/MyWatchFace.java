@@ -34,7 +34,6 @@ import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
-import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
@@ -74,6 +73,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
     private int colorCount = 0;
     private float mCenterHeight;
     private float mCenterWidth;
+    private float mCenterWidthforWeatherIcon;
+    private float weatherY;
 
     @Override
     public Engine onCreateEngine() {
@@ -134,6 +135,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
             }
         };
         private int mTapCount;
+        private float mCenterHeightforWeatherIcon;
 
         /**
          * Update rate in milliseconds for interactive mode. We update once a second since seconds are
@@ -205,8 +207,7 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
 
             mTextPaint.setTextSize(textSize);
-            mTemPaint.setTextSize(12);
-
+            mTemPaint.setTextSize(36);
 
 
         }
@@ -272,8 +273,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
             int color = colorArray[colorCount];
             colorCount++;
-            if (colorCount>=colorArray.length)
-                colorCount=0;
+            if (colorCount >= colorArray.length)
+                colorCount = 0;
 
             return color;
 
@@ -283,8 +284,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             super.onSurfaceChanged(holder, format, width, height);
 
-            mCenterHeight=height/2f;
-            mCenterWidth=width/2f;
+            mCenterHeight = height / 2f;
+            mCenterWidth = width / 2f;
 
         }
 
@@ -308,23 +309,34 @@ public class MyWatchFace extends CanvasWatchFaceService {
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
 
             //getThe hright of the Time text
-            Rect timebounds=new Rect();
-            mTextPaint.getTextBounds(text,0,text.length()-1,timebounds);
+            Rect timebounds = new Rect();
+            mTextPaint.getTextBounds(text, 0, text.length() - 1, timebounds);
             int textHeight = timebounds.height();
             //draw the weatcher icon
             if (weatherID != -1) {
                 weatherIcon = BitmapFactory.decodeResource(getResources(), Utility.getIconResourceForWeatherCondition(weatherID));
-                float mCenterWidthforWeatherIcon = mCenterWidth - weatherIcon.getWidth() / 2f;
-                float mCenterHeightforWeatherIcon = mCenterHeight - weatherIcon.getHeight() / 2f;
+                mCenterWidthforWeatherIcon = mCenterWidth - weatherIcon.getWidth() / 2f;
+                mCenterHeightforWeatherIcon = mCenterHeight - weatherIcon.getHeight() / 2f;
 
-                float weatherHeight = mCenterHeightforWeatherIcon + textHeight;
+                weatherY = mCenterHeightforWeatherIcon + textHeight;
 
-                canvas.drawBitmap(weatherIcon, mCenterWidthforWeatherIcon,weatherHeight , null);
+                canvas.drawBitmap(weatherIcon, mCenterWidthforWeatherIcon, weatherY, null);
             }
 
+            Rect temBounds = new Rect();
+            mTemPaint.getTextBounds(hightemp, 0, hightemp.length() - 1, temBounds);
+            int heightOfTemp = temBounds.height();
+            float TempY;
 
+            //set the Y of the temp
+            if (weatherIcon != null)
+                TempY = weatherY + weatherIcon.getHeight();
+            else
+                TempY = weatherY;
+
+            //set the x of the high tem
             //draw the tempecture and humidity
-            canvas.drawText(lowtemp + " " + hightemp, mXOffset, mTextYOffset, mTextPaint);
+            canvas.drawText(lowtemp + " " + hightemp, mXOffset, TempY, mTemPaint);
         }
 
         @Override
