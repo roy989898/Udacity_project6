@@ -34,6 +34,7 @@ import android.os.Message;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.text.format.Time;
+import android.view.Display;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
@@ -71,6 +72,8 @@ public class MyWatchFace extends CanvasWatchFaceService {
             R.color.backgroundOrange, R.color.backgroundDarkOrange};
 
     private int colorCount = 0;
+    private float mCenterHeight;
+    private float mCenterWidth;
 
     @Override
     public Engine onCreateEngine() {
@@ -203,6 +206,9 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
             mTextPaint.setTextSize(textSize);
             mTemPaint.setTextSize(12);
+
+
+
         }
 
         @Override
@@ -274,6 +280,15 @@ public class MyWatchFace extends CanvasWatchFaceService {
         }
 
         @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            super.onSurfaceChanged(holder, format, width, height);
+
+            mCenterHeight=height/2f;
+            mCenterWidth=width/2f;
+
+        }
+
+        @Override
         public void onDraw(Canvas canvas, Rect bounds) {
             /* draw your watch face */
             // Draw the background.
@@ -292,11 +307,19 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     : String.format("%d:%02d:%02d", mTime.hour, mTime.minute, mTime.second);
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
 
-
+            //getThe hright of the Time text
+            Rect timebounds=new Rect();
+            mTextPaint.getTextBounds(text,0,text.length()-1,timebounds);
+            int textHeight = timebounds.height();
             //draw the weatcher icon
             if (weatherID != -1) {
                 weatherIcon = BitmapFactory.decodeResource(getResources(), Utility.getIconResourceForWeatherCondition(weatherID));
-                canvas.drawBitmap(weatherIcon, mXOffset, mYOffset, null);
+                float mCenterWidthforWeatherIcon = mCenterWidth - weatherIcon.getWidth() / 2f;
+                float mCenterHeightforWeatherIcon = mCenterHeight - weatherIcon.getHeight() / 2f;
+
+                float weatherHeight = mCenterHeightforWeatherIcon + textHeight;
+
+                canvas.drawBitmap(weatherIcon, mCenterWidthforWeatherIcon,weatherHeight , null);
             }
 
 
