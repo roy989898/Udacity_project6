@@ -60,10 +60,17 @@ public class MyWatchFace extends CanvasWatchFaceService {
     private String showText = "24C 16C";
     private Bitmap weatherIcon;
     private Paint mTemPaint;
-    private String lowtemp="--";
-    private String hightemp="--";
-    private String desString="--";
-    private int weatherID=-1;
+    private String lowtemp = "--";
+    private String hightemp = "--";
+    private String desString = "--";
+    private int weatherID = -1;
+
+    private int[] colorArray = {R.color.backgroundRed, R.color.backgroundPink, R.color.backgroundPurple, R.color.BackgroundDeepPurple, R.color.backgroundIndigo, R.color.backgroundBlue,
+            R.color.backgroundLightBlue, R.color.backgroundCyan, R.color.backgroundTeal,
+            R.color.backgroundGreen, R.color.backgroundLightGreen, R.color.backgroundLime, R.color.backgroundYellow, R.color.backgroundAmber,
+            R.color.backgroundOrange, R.color.backgroundDarkOrange};
+
+    private int colorCount = 0;
 
     @Override
     public Engine onCreateEngine() {
@@ -100,10 +107,10 @@ public class MyWatchFace extends CanvasWatchFaceService {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String text = intent.getStringExtra(getString(R.string.BRODCAST_INTENT_KEY));
-                 lowtemp = intent.getStringExtra(getString(R.string.LOW_TEMP_KEY));
-                 hightemp = intent.getStringExtra(getString(R.string.HIGH_TEMP_KEY));
-                 desString = intent.getStringExtra(getString(R.string.DESC_KEY));
-                 weatherID = intent.getIntExtra(getString(R.string.WEATID_KEY),-1);
+                lowtemp = intent.getStringExtra(getString(R.string.LOW_TEMP_KEY));
+                hightemp = intent.getStringExtra(getString(R.string.HIGH_TEMP_KEY));
+                desString = intent.getStringExtra(getString(R.string.DESC_KEY));
+                weatherID = intent.getIntExtra(getString(R.string.WEATID_KEY), -1);
                 showText = text;
                 invalidate();//focus update
             }
@@ -247,12 +254,23 @@ public class MyWatchFace extends CanvasWatchFaceService {
                     break;
                 case TAP_TYPE_TAP:
                     // The user has completed the tap gesture.
-                    /*mTapCount++;
-                    mBackgroundPaint.setColor(resources.getColor(mTapCount % 2 == 0 ?
-                            R.color.background : R.color.background2));*/
+                    mTapCount++;
+                    mBackgroundPaint.setColor(resources.getColor(getBackgroundColor()));
                     break;
             }
             invalidate();
+        }
+
+        private int getBackgroundColor() {
+
+
+            int color = colorArray[colorCount];
+            colorCount++;
+            if (colorCount>=colorArray.length)
+                colorCount=0;
+
+            return color;
+
         }
 
         @Override
@@ -276,14 +294,14 @@ public class MyWatchFace extends CanvasWatchFaceService {
 
 
             //draw the weatcher icon
-            if(weatherID!=-1){
+            if (weatherID != -1) {
                 weatherIcon = BitmapFactory.decodeResource(getResources(), Utility.getIconResourceForWeatherCondition(weatherID));
                 canvas.drawBitmap(weatherIcon, mXOffset, mYOffset, null);
             }
 
 
             //draw the tempecture and humidity
-            canvas.drawText(lowtemp+" "+hightemp, mXOffset, mTextYOffset, mTextPaint);
+            canvas.drawText(lowtemp + " " + hightemp, mXOffset, mTextYOffset, mTextPaint);
         }
 
         @Override
