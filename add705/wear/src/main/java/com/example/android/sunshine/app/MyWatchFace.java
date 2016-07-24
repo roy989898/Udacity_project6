@@ -65,9 +65,11 @@ public class MyWatchFace extends CanvasWatchFaceService {
     private String desString = "--";
     private int weatherID = -1;
 
-    private int[] colorArray = {R.color.backgroundRed, R.color.backgroundPink, R.color.backgroundPurple, R.color.BackgroundDeepPurple, R.color.backgroundIndigo, R.color.backgroundBlue,
+    private int[] colorArray = {R.color.backgroundRed, R.color.backgroundPink,
+            R.color.backgroundPurple, R.color.BackgroundDeepPurple, R.color.backgroundIndigo, R.color.backgroundBlue,
             R.color.backgroundLightBlue, R.color.backgroundCyan, R.color.backgroundTeal,
-            R.color.backgroundGreen, R.color.backgroundLightGreen, R.color.backgroundLime, R.color.backgroundYellow, R.color.backgroundAmber,
+            R.color.backgroundGreen, R.color.backgroundLightGreen, R.color.backgroundLime,
+            R.color.backgroundYellow, R.color.backgroundAmber,
             R.color.backgroundOrange, R.color.backgroundDarkOrange};
 
     private int colorCount = 0;

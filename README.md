@@ -6,17 +6,18 @@ This is the sixth project of the Udacity Android Developer Nanodegree. in this p
 
 ## Feature
 
-Simple and clear user interface
+- Simple and clear user interface
 
-Clear weather information icon
+- Clear weather information icon
 
-Auto update the weather information,no need to click any button
+- Auto update the weather information,no need to click any button
 
-Touch the screen can change background color
+- Touch the screen can change background color
 
-Up to 15 background color
+- Up to 15 background color
 
-Save power mode
+- Save power mode
+
 
 
 
@@ -34,7 +35,9 @@ Save power mode
 
 ![https://github.com/roy989898/Udacity_project6/blob/master/add705/scrrenShot/device-2016-07-19-193258.png?raw=true](https://github.com/roy989898/Udacity_project6/blob/master/add705/scrrenShot/device-2016-07-19-193258.png?raw=true)
 
+## Technology and library used
 
+- Android Wear APIs
 
 ## License
 ```
